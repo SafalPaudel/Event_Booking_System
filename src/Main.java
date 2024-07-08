@@ -1,3 +1,6 @@
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import javax.swing.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -19,18 +22,16 @@ public class Main {
     private static List<Event> fetchEventsFromDatabase() {
         List<Event> events = new ArrayList<>();
 
-        try (Connection connection = DatabaseConnection.getConnection();
-             Statement statement = connection.createStatement()) {
-            String query = "SELECT name, date, location FROM events";
-            ResultSet resultSet = statement.executeQuery(query);
+        try{
+            String response = APIController.getData("http://localhost:8080/eventbooking/api/events","GET");
+            JSONArray eventsJson = new JSONArray(response);
+            for(int i =0; i<eventsJson.length();i++){
+                JSONObject eventItem = eventsJson.getJSONObject(i);
 
-            while (resultSet.next()) {
-                String name = resultSet.getString("name");
-                String date = resultSet.getString("date");
-                String location = resultSet.getString("location");
-                events.add(new Event(name, date, location));
+                Event event = new Event(eventItem.getString("name"),eventItem.getString("date"),eventItem.getString("location"));
+                events.add(event);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
